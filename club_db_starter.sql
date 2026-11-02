@@ -228,7 +228,7 @@ values (100, 45.00, 'cash');
 -- checks the payments that were added.
 select * from payment;
 
--- adds Noor's second.
+-- adds Noor's second payment.
 insert into payment (member_id, amount, paid_on, method)
 values (100, 30.00, '2026-04-02', 'card');
 
