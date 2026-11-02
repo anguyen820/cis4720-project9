@@ -124,7 +124,7 @@ create table payment_log (
 -- checks the next ID number for each table.
 select table_name, AUTO_INCREMENT
 from information_schema.tables
-where table_schema = 'club_id';
+where table_schema = 'club_db';
 
 -- =================================================================
 -- STEP 5. Create the member_total function
@@ -153,7 +153,7 @@ BEGIN
     RETURN IFNULL(v_total, 0.00);
 END
 
-
+describe payment_log;
 -- =================================================================
 -- STEP 6. A BEFORE INSERT trigger that fills in what was left out
 -- =================================================================
@@ -173,30 +173,78 @@ BEGIN
     SET NEW.method = UPPER(NEW.method);
 END
 
-
 -- =================================================================
 -- STEP 7. An AFTER INSERT trigger that updates and logs
 -- =================================================================
 
--- your comment goes here
--- your statements go here
+-- updates the member's total payment and records the new payment.
 
+-- fires once a payment row has landed
+CREATE TRIGGER trg_payment_after_insert
+AFTER INSERT ON payment
+FOR EACH ROW
+BEGIN
+    -- job one: bring that member's running total up to date
+    update member
+    set total_paid = member_total(new.member_id)
+    where member_id = new.member_id;
+
+    -- job two: write a line in the log saying what happened
+    INSERT INTO payment_log (member_id, amount, action, logged_on)
+    VALUES (NEW.member_id, NEW.amount, 'ADDED', NOW());
+END
 
 -- =================================================================
 -- STEP 8. An AFTER DELETE trigger that does the same in reverse
 -- =================================================================
 
--- your comment goes here
--- your statements go here
+-- updates the member's total and records when a payment is removed.
 
+-- fires once a payment row has gone
+CREATE TRIGGER trg_payment_after_delete
+AFTER DELETE ON payment
+FOR EACH ROW
+BEGIN
+    -- OLD, not NEW, because the row that matters is the one
+    -- that was just removed. a deleted row has no NEW
+    update member
+    set total_paid = member_total(old.member_id)
+    where member_id = old.member_id;
+
+-- and the log says REMOVED this time
+    INSERT INTO payment_log (member_id, amount, action, logged_on)
+    VALUES (OLD.member_id, OLD.amount, 'REMOVED', NOW());
+END
 
 -- =================================================================
 -- STEP 9. Add four payments, then remove one, and watch it all happen
 -- =================================================================
 
--- your comment goes here
--- your statements go here
+-- adds four payments, checks the member totals, and removes one payment to test the triggers.
+insert into payment (member_id, amount, method)
+values (100, 45.00, 'cash');
 
+select * from payment;
+
+insert into payment (member_id, amount, paid_on, method)
+values (100, 30.00, '2026-04-02', 'card');
+
+
+insert into payment (member_id, amount, method)
+values (101, 45.00, 'check');
+
+insert into payment (member_id, amount, paid_on, method)
+values (102, 60.00, '2026-03-15', 'card');
+
+select * from member;
+
+delete from payment 
+where payment_id = 5001;
+
+select * from member
+where member_id = 100;
+
+select * from payment_log;
 
 -- =================================================================
 -- STEP 10 and 11. Push to GitHub and submit the URL
