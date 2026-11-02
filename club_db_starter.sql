@@ -210,7 +210,7 @@ BEGIN
     set total_paid = member_total(old.member_id)
     where member_id = old.member_id;
 
--- and the log says REMOVED this time
+    -- and the log says REMOVED this time
     INSERT INTO payment_log (member_id, amount, action, logged_on)
     VALUES (OLD.member_id, OLD.amount, 'REMOVED', NOW());
 END
@@ -225,9 +225,6 @@ END
 insert into payment (member_id, amount, method)
 values (100, 45.00, 'cash');
 
--- checks the payments that were added.
-select * from payment;
-
 -- adds Noor's second payment.
 insert into payment (member_id, amount, paid_on, method)
 values (100, 30.00, '2026-04-02', 'card');
@@ -239,6 +236,9 @@ values (101, 45.00, 'check');
 -- adds Sofia's payment.
 insert into payment (member_id, amount, paid_on, method)
 values (102, 60.00, '2026-03-15', 'card');
+
+-- checks the payments that were added.
+select * from payment;
 
 -- checks each member's total payments.
 select * from member;
