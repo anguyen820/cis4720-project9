@@ -153,7 +153,6 @@ BEGIN
     RETURN IFNULL(v_total, 0.00);
 END
 
-describe payment_log;
 -- =================================================================
 -- STEP 6. A BEFORE INSERT trigger that fills in what was left out
 -- =================================================================
@@ -221,29 +220,38 @@ END
 -- =================================================================
 
 -- adds four payments, checks the member totals, and removes one payment to test the triggers.
+
+-- adds Noor's first payment.
 insert into payment (member_id, amount, method)
 values (100, 45.00, 'cash');
 
+-- checks the payments that were added.
 select * from payment;
 
+-- adds Noor's second.
 insert into payment (member_id, amount, paid_on, method)
 values (100, 30.00, '2026-04-02', 'card');
 
-
+-- adds Caleb's payment.
 insert into payment (member_id, amount, method)
 values (101, 45.00, 'check');
 
+-- adds Sofia's payment.
 insert into payment (member_id, amount, paid_on, method)
 values (102, 60.00, '2026-03-15', 'card');
 
+-- checks each member's total payments.
 select * from member;
 
+-- removes Noor's second payment.
 delete from payment 
 where payment_id = 5001;
 
+-- checks Noor's total after removing her payment.
 select * from member
 where member_id = 100;
 
+-- shows all payments that were added or removed.
 select * from payment_log;
 
 -- =================================================================
